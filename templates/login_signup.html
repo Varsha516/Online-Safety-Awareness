@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login | Online Safety Awareness</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to right, #00b4db, #0083b0);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      width: 350px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #0083b0;
+    }
+
+    label {
+      font-weight: 500;
+      display: block;
+      margin: 10px 0 5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #0083b0;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #005f73;
+    }
+
+    .toggle-link {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .toggle-link a {
+      color: #0083b0;
+      text-decoration: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .form-group {
+      display: none;
+    }
+
+    .form-group.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- LOGIN FORM -->
+<div id="login-form" class="form-group active">
+  <h2>Login</h2>
+  <form action="/login" method="POST">
+    <label for="login-email">Email</label>
+    <input type="email" id="login-email" name="email" required>
+
+    <label for="login-password">Password</label>
+    <input type="password" id="login-password" name="password" required>
+
+    <!-- ADDED FORGOT PASSWORD LINK -->
+    <div style="text-align:right; margin-top:-5px; margin-bottom:10px;">
+      <a href="/forgot-password" style="font-size:13px; color:#0083b0; text-decoration:none;">
+        Forgot Password?
+      </a>
+    </div>
+
+    <button type="submit">Login</button>
+  </form>
+
+  <div class="toggle-link">
+    Don't have an account? <a onclick="showSignup()">Sign Up</a>
+  </div>
+</div>
+    <!-- SIGNUP FORM -->
+    <div id="signup-form" class="form-group">
+      <h2>Sign Up</h2>
+      <form action="/signup" method="POST">
+        <label for="signup-name">Full Name</label>
+        <input type="text" id="signup-name" name="name" required>
+
+        <label for="signup-email">Email</label>
+        <input type="email" id="signup-email" name="email" required>
+
+        <label for="signup-phone">Phone Number</label>
+<input 
+  type="tel"
+  id="signup-phone"
+  name="phone"
+  maxlength="10"
+  pattern="[6-9]{1}[0-9]{9}"
+  placeholder="Enter 10 digit mobile number"
+  required
+  oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+  title="Enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9">
+        <label for="signup-password">Password</label>
+        <input type="password" id="signup-password" name="password" required>
+
+        <label for="signup-confirm">Confirm Password</label>
+        <input type="password" id="signup-confirm" required>
+
+        <button type="submit">Register</button>
+      </form>
+      <div class="toggle-link">
+        Already have an account? <a onclick="showLogin()">Login</a>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function showSignup() {
+      document.getElementById('login-form').classList.remove('active');
+      document.getElementById('signup-form').classList.add('active');
+    }
+
+    function showLogin() {
+      document.getElementById('signup-form').classList.remove('active');
+      document.getElementById('login-form').classList.add('active');
+    }
+  </script>
+
+</body>
+</html>

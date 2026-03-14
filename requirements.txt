@@ -1,4 +1,3 @@
-Flask
-oracledb
-Flask-Mail
+flask
+flask-mail
 python-dotenv

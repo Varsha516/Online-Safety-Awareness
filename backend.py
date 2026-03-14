@@ -1,17 +1,13 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
-import oracledb
+import sqlite3
 import os
 import random
 from flask_mail import Mail, Message
 from dotenv import load_dotenv
 
-# Load .env variables
+# Load environment variables
 load_dotenv()
 
-# Initialize Oracle client (update path if needed)
-oracledb.init_oracle_client(lib_dir=r"E:\orac\instantclient_23_9")
-
-# Create Flask app
 app = Flask(__name__, template_folder="templates")
 app.secret_key = os.getenv("SECRET_KEY")
 
@@ -24,13 +20,37 @@ app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
 
 mail = Mail(app)
 
-# DB connection
-dsn = oracledb.makedsn("localhost", 1521, service_name="XE")
-conn = oracledb.connect(
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    dsn=dsn
-)
+
+# DATABASE CONNECTION (SQLite)
+
+def get_db_connection():
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+# CREATE TABLE (RUNS AUTOMATICALLY)
+
+def create_table():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        email TEXT UNIQUE,
+        phone TEXT,
+        password TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+create_table()
+
 
 # ROUTES
 
@@ -40,6 +60,7 @@ def index():
 
 
 # SIGNUP
+
 @app.route("/signup", methods=["POST"])
 def signup():
 
@@ -48,47 +69,44 @@ def signup():
     phone = request.form.get("phone")
     password = request.form.get("password")
 
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
-        cursor.execute("""
-            INSERT INTO users (name, email, phone, password)
-            VALUES (:name, :email, :phone, :password)
-        """, {
-            "name": name,
-            "email": email,
-            "phone": phone,
-            "password": password
-        })
+
+        cursor.execute(
+            "INSERT INTO users (name,email,phone,password) VALUES (?,?,?,?)",
+            (name, email, phone, password)
+        )
 
         conn.commit()
 
         return redirect(url_for("index"))
 
-    except oracledb.IntegrityError:
+    except sqlite3.IntegrityError:
+
         return jsonify({"error": "Email already exists"}), 400
 
     finally:
-        cursor.close()
+        conn.close()
 
 
 # LOGIN
+
 @app.route("/login", methods=["POST"])
 def login():
 
     email = request.form.get("email")
     password = request.form.get("password")
 
-    cursor = conn.cursor()
+    conn = get_db_connection()
 
-    cursor.execute(
-        "SELECT * FROM users WHERE email=:email AND password=:password",
-        {"email": email, "password": password}
-    )
+    user = conn.execute(
+        "SELECT * FROM users WHERE email=? AND password=?",
+        (email, password)
+    ).fetchone()
 
-    user = cursor.fetchone()
-
-    cursor.close()
+    conn.close()
 
     if user:
         return redirect(url_for("home"))
@@ -97,18 +115,21 @@ def login():
 
 
 # HOME
+
 @app.route("/home")
 def home():
     return render_template("home.html")
 
 
-# FORGOT PASSWORD PAGE
+# FORGOT PASSWORD
+
 @app.route("/forgot-password")
 def forgot_password():
     return render_template("forgot_password.html")
 
 
 # SEND OTP
+
 @app.route("/send-otp", methods=["POST"])
 def send_otp():
 
@@ -133,6 +154,7 @@ def send_otp():
 
 
 # VERIFY OTP
+
 @app.route("/verify-otp", methods=["POST"])
 def verify_otp():
 
@@ -140,12 +162,12 @@ def verify_otp():
 
     if user_otp == session.get("otp"):
         return render_template("reset_password.html")
-
     else:
         return "Invalid OTP"
 
 
 # RESEND OTP
+
 @app.route("/resend-otp")
 def resend_otp():
 
@@ -169,22 +191,22 @@ def resend_otp():
 
 
 # RESET PASSWORD
+
 @app.route("/reset-password", methods=["POST"])
 def reset_password():
 
     new_password = request.form.get("password")
     email = session.get("reset_email")
 
-    cursor = conn.cursor()
+    conn = get_db_connection()
 
-    cursor.execute(
-        "UPDATE users SET password=:password WHERE email=:email",
-        {"password": new_password, "email": email}
+    conn.execute(
+        "UPDATE users SET password=? WHERE email=?",
+        (new_password, email)
     )
 
     conn.commit()
-
-    cursor.close()
+    conn.close()
 
     return redirect(url_for("index"))
 
@@ -232,5 +254,6 @@ def help_and_support():
 
 
 # RUN APP
+
 if __name__ == "__main__":
     app.run(debug=True)

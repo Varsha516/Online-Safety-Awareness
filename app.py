@@ -29,12 +29,14 @@ def get_db_connection():
     return conn
 @app.route("/admin/users")
 def admin_users():
-    import sqlite3
-    conn = sqlite3.connect("users.db")
+
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT username, email FROM users")
+    cursor.execute("SELECT name, email FROM users")
     users = cursor.fetchall()
+
+    conn.close()
 
     return str(users)
 

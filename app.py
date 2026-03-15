@@ -27,6 +27,16 @@ def get_db_connection():
     conn = sqlite3.connect("database.db")
     conn.row_factory = sqlite3.Row
     return conn
+@app.route("/admin/users")
+def admin_users():
+    import sqlite3
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT username, email FROM users")
+    users = cursor.fetchall()
+
+    return str(users)
 
 
 # CREATE TABLE (RUNS AUTOMATICALLY)

@@ -21,14 +21,12 @@ app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
 mail = Mail(app)
 
 
-# DATABASE CONNECTION (SQLite)
-
-
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 
 # ADMIN CREDENTIALS from environment variables
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+
 
 
 # DATABASE CONNECTION
@@ -66,19 +64,17 @@ def admin_login():
 
     if request.method == "POST":
 
-        email = request.form["email"]
+        username = request.form["username"]
         password = request.form["password"]
 
-        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session["admin"] = True
             return redirect(url_for("admin_users"))
 
-        return "Invalid admin credentials"
+        return "Invalid Admin Credentials"
 
     return render_template("admin_login.html")
 
-
-# ADMIN USERS PAGE
 @app.route("/admin/users")
 def admin_users():
 
@@ -88,7 +84,7 @@ def admin_users():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT name, email, phone FROM users")
+    cursor.execute("SELECT name,email,phone FROM users")
     users = cursor.fetchall()
 
     conn.close()

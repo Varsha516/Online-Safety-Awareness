@@ -23,26 +23,22 @@ mail = Mail(app)
 
 # DATABASE CONNECTION (SQLite)
 
+
+
+
+# ADMIN CREDENTIALS from environment variables
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+
+
+# DATABASE CONNECTION
 def get_db_connection():
     conn = sqlite3.connect("database.db")
     conn.row_factory = sqlite3.Row
     return conn
-@app.route("/admin/users")
-def admin_users():
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT name, email FROM users")
-    users = cursor.fetchall()
-
-    conn.close()
-
-    return str(users)
 
 
-# CREATE TABLE (RUNS AUTOMATICALLY)
-
+# CREATE USERS TABLE
 def create_table():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -62,6 +58,49 @@ def create_table():
 
 
 create_table()
+
+
+# ADMIN LOGIN
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+
+    if request.method == "POST":
+
+        email = request.form["email"]
+        password = request.form["password"]
+
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+            session["admin"] = True
+            return redirect(url_for("admin_users"))
+
+        return "Invalid admin credentials"
+
+    return render_template("admin_login.html")
+
+
+# ADMIN USERS PAGE
+@app.route("/admin/users")
+def admin_users():
+
+    if "admin" not in session:
+        return redirect(url_for("admin_login"))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT name, email, phone FROM users")
+    users = cursor.fetchall()
+
+    conn.close()
+
+    return render_template("admin_users.html", users=users)
+
+
+# ADMIN LOGOUT
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("admin", None)
+    return redirect(url_for("admin_login"))
 
 
 # ROUTES
